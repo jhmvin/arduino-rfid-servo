@@ -1,6 +1,6 @@
 
 // Library Files
-#include <EEPROM.h>     // Saving the data to the Arduino Memory
+// #include <EEPROM.h>     // Saving the data to the Arduino Memory // not going to use just use a predefined card numbers
 #include <SPI.h>        // RC522 Module uses SPI protocol
 #include <MFRC522.h>  // Library for Mifare RC522 Devices -> https://github.com/miguelbalboa/rfid
 #include <Servo.h>  // Servo Library
@@ -42,6 +42,16 @@ void offVisuals(){
   digitalWrite(GREEN_LED, PIN_OFF);
   digitalWrite(BLUE_LED, PIN_OFF);
   digitalWrite(RED_LED, PIN_OFF);
+}
+
+/**
+ * buzz for 0.5 seconds
+ */
+void buzz(){
+  // make sure its off
+  digitalWrite(BUZZER, PIN_OFF);
+  digitalWrite(BUZZER, PIN_ON);
+  delay(500);
   digitalWrite(BUZZER, PIN_OFF);
 }
 
@@ -87,8 +97,8 @@ class RFID_Reader{
       // Until we support 7 byte PICCs
       Serial.println(F("Scanned PICC's UID:"));
       for ( uint8_t i = 0; i < 4; i++) {  //
-        readCard[i] = mfrc522.uid.uidByte[i];
-        Serial.print(readCard[i], HEX);
+        this->readCard[i] = mfrc522.uid.uidByte[i];
+        Serial.print(this->readCard[i], HEX);
       }
       Serial.println("");
       mfrc522.PICC_HaltA(); // Stop reading
@@ -127,8 +137,7 @@ class RFID_Reader{
         digitalWrite(RED_LED, PIN_ON);   // Turn on red LED
         // make the program in forever loop
         while (true){
-          digitalWrite(BUZZER, PIN_ON);  // buzz
-          delay(3000);
+          buzz();
         }
       }
       //---------------------------------------------------------------
@@ -145,12 +154,14 @@ void setup() {
   pinMode(GREEN_LED, OUTPUT);
   pinMode(RED_LED, OUTPUT);
   pinMode(BUZZER, OUTPUT);
-
-
+  
   reader.initialize();
   reader.showReaderInfo();
-//  reader.readRFID();
-//  reader.getReadData();
+
+  // read
+  reader.readRFID();
+  // store read data
+  byte readData = reader.getReadData();
 }
 
 void loop() {
