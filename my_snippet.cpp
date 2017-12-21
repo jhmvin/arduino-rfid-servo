@@ -169,6 +169,10 @@ void setup() {
       digitalWrite(redLed, LED_OFF);
     }
   }
+  //-----------------------------------------------------------------------------------------
+  // Explanation: the first slot of EEPROM Memory is reserved as a flag if there is 
+  // a master card to be read
+  //-----------------------------------------------------------------------------------------
   // Check if master card defined, if not let user choose a master card
   // This also useful to just redefine the Master Card
   // You can keep other EEPROM records just write other than 143 to EEPROM address 1
