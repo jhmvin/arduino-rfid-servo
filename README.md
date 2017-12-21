@@ -11,6 +11,8 @@
 - The project requires the library **[MFRC522](https://github.com/miguelbalboa/rfid)** for communicating with the RFID Reader
 - Reference code used was from a gist [Sample Code](https://gist.github.com/anonymous/5ec489385bcf1ac6e6efa789321aee81)
 - The project reference was from [DIY Smart Lock with Arduino and RFID](https://www.makeuseof.com/tag/diy-smart-lock-arduino-rfid/)
+- Reference for Servo [Instructables](http://www.instructables.com/id/Arduino-Servo-Motors/) and [Arduino Sweep](https://www.arduino.cc/en/Tutorial/Sweep)
+
 
 ## Project Details
 1. The project is inteneded to create a parking attendant simulation that has a maximum capacity of 10.

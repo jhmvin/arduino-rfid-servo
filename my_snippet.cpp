@@ -188,7 +188,9 @@ void setup() {
       delay(200);
     }
     while (!successRead);                  // Program will not go further while you not get a successful read
-    for ( uint8_t j = 0; j < 4; j++ ) {        // Loop 4 times
+    // we can only write 1 byte to each EEPROM slot
+	// since the card detials is 4 byte we need for slots.
+	for ( uint8_t j = 0; j < 4; j++ ) {        // Loop 4 times
       EEPROM.write( 2 + j, readCard[j] );  // Write scanned PICC's UID to EEPROM, start from address 3
     }
     EEPROM.write(1, 143);                  // Write to EEPROM we defined Master Card.
