@@ -6,7 +6,7 @@
 [![forthebadge](http://forthebadge.com/images/badges/60-percent-of-the-time-works-every-time.svg)](http://forthebadge.com)
 
 
-## A Project for Embedded IT 443
+## A Project for IT 443
 
 - The project requires the library **[MFRC522](https://github.com/miguelbalboa/rfid)** for communicating with the RFID Reader
 - Reference code used was from a gist [Sample Code](https://gist.github.com/anonymous/5ec489385bcf1ac6e6efa789321aee81)
