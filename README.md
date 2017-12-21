@@ -1,12 +1,12 @@
 # Arduino Based RFID with Servo Parking Attendant Simulator
 
-[![Open Source Love](https://badges.frapsoft.com/os/v1/open-source-150x25.png?v=103)](https://github.com/ellerbrock/open-source-badges/)
+[![Open Source Love](https://badges.frapsoft.com/os/v1/open-source-175x29.png?v=103)](https://github.com/ellerbrock/open-source-badges/)
 [![forthebadge](http://forthebadge.com/images/badges/built-with-love.svg)](http://forthebadge.com)
 [![forthebadge](http://forthebadge.com/images/badges/contains-cat-gifs.svg)](http://forthebadge.com)
 [![forthebadge](http://forthebadge.com/images/badges/60-percent-of-the-time-works-every-time.svg)](http://forthebadge.com)
 
 
-**A Project for Embedded IT 443**
+## A Project for Embedded IT 443
 
 - The project requires the library **[MFRC522](https://github.com/miguelbalboa/rfid)** for communicating with the RFID Reader
 - Reference code used was from a gist [Sample Code](https://gist.github.com/anonymous/5ec489385bcf1ac6e6efa789321aee81)
@@ -20,4 +20,4 @@
 5. The same goes with the exit card.
 6. When the capacity reached 10 the the stick will not be lifted until an exit card was read.
 
-> Afterschool Creatives 2017
+> **Afterschool Creatives 2017**
