@@ -12,7 +12,7 @@
 // PIN 0 (RX)
 // PIN 1 (TX)
 // Start using PIN 2
-// For Visuals or User Outputs
+// For Visuals or System Outputs
 #define BLUE_LED 2 // for for programming mode
 #define GREEN_LED 3 // success read of card and Not Full Parking Space
 #define RED_LED 4 // error reading card and Full Parking Space
@@ -28,12 +28,16 @@
 #define MFRC522_SCK 13
 
 //Defining Visuals
-// BLUE indicates programming mode. when blue led is on alone it means no programming card is selected and asking to scan a card
+// BLUE indicates programming mode.
 // BLUE WITH GREEN asking to set the entrance card
 // BLUE WITH RED asking to set the exit card
 // GREEN - card accepted rotate servo motor for entrance (Buzz 1x)
 // RED - card accepted rotate servo for exit (Buzz 1x)
 // RED BUZZER - card read failed try to scan code again (Buzz 3x)
+
+//---------------------------------------------------------------------------------------------------------
+// VISUALS SEGMENT
+//---------------------------------------------------------------------------------------------------------
 
 /**
  * Turn off all visuals.
@@ -51,71 +55,37 @@ void buzz(){
   // make sure its off
   digitalWrite(BUZZER, PIN_OFF);
   digitalWrite(BUZZER, PIN_ON);
-  delay(500);
+  delay(250);
   digitalWrite(BUZZER, PIN_OFF);
 }
 
+//---------------------------------------------------------------------------------------------------------
+// RFID READER SEGMENT
+//---------------------------------------------------------------------------------------------------------
+
+MFRC522 mfrc522(MFRC522_SDA, MFRC522_RST); // card reader instance
+uint8_t successRead; // success read flag
+byte readCard[4]; // read storage
+
 /**
- * MFRC522 Instance.
+ * Initializes the RFID Reader
  */
-MFRC522 mfrc522(MFRC522_SDA, MFRC522_RST);
-
-class RFID_Reader{  
-  private:
-    uint8_t successRead;
-    byte readCard[4];   // Stores scanned ID read from RFID Module
+void initializeRFID(){
+      //Protocol Configuration
+      Serial.begin(9600);  // Initialize serial communications with PC
+      SPI.begin();           // MFRC522 Hardware uses SPI protocol
+      mfrc522.PCD_Init();    // Initialize MFRC522 Hardware
     
-  public:
-  /**
-   * Setup related to the reader.
-   */
-    void initialize(){
-        //Protocol Configuration
-        Serial.begin(9600);  // Initialize serial communications with PC
-        SPI.begin();           // MFRC522 Hardware uses SPI protocol
-        mfrc522.PCD_Init();    // Initialize MFRC522 Hardware
-      
-        //If you set Antenna Gain to Max it will increase reading distance
-        //mfrc522.PCD_SetAntennaGain(mfrc522.RxGain_max);
-      
-        Serial.println(F("Access Control Example v0.1"));   // For debugging purposes
-    }
+      //If you set Antenna Gain to Max it will increase reading distance
+      //mfrc522.PCD_SetAntennaGain(mfrc522.RxGain_max);
+    
+      Serial.println(F("Access Control Example v0.1"));   // For debugging purposes
+} // end initialize
 
-    /**
-     * Read RFID
-     */
-    uint8_t readRFID() {
-      // Getting ready for Reading PICCs
-      if ( ! mfrc522.PICC_IsNewCardPresent()) { //If a new PICC placed to RFID reader continue
-        return 0;
-      }
-      if ( ! mfrc522.PICC_ReadCardSerial()) {   //Since a PICC placed get Serial and continue
-        return 0;
-      }
-      // There are Mifare PICCs which have 4 byte or 7 byte UID care if you use 7 byte PICC
-      // I think we should assume every PICC as they have 4 byte UID
-      // Until we support 7 byte PICCs
-      Serial.println(F("Scanned PICC's UID:"));
-      for ( uint8_t i = 0; i < 4; i++) {  //
-        this->readCard[i] = mfrc522.uid.uidByte[i];
-        Serial.print(this->readCard[i], HEX);
-      }
-      Serial.println("");
-      mfrc522.PICC_HaltA(); // Stop reading
-      return 1;
-    }
-
-    /**
-     * Returns the read data from the card
-     */
-    byte getReadData(){
-      return readCard;
-    }
-
-  /**
-   * Check reader details
-   */
-    void showReaderInfo() {
+/**
+ * Check the card reader details if the reader was not recognizable beep forever.
+ */
+void showReaderInfo() {
       // Get the MFRC522 software version
       byte v = mfrc522.PCD_ReadRegister(mfrc522.VersionReg);
       Serial.print(F("MFRC522 Software Version: 0x"));
@@ -140,31 +110,123 @@ class RFID_Reader{
           buzz();
         }
       }
-      //---------------------------------------------------------------
+}// end reader info
+
+uint8_t readRFID() {
+      // Getting ready for Reading PICCs
+      if ( ! mfrc522.PICC_IsNewCardPresent()) { //If a new PICC placed to RFID reader continue
+        return 0;
+      }
+      if ( ! mfrc522.PICC_ReadCardSerial()) {   //Since a PICC placed get Serial and continue
+        return 0;
+      }
+      // There are Mifare PICCs which have 4 byte or 7 byte UID care if you use 7 byte PICC
+      // I think we should assume every PICC as they have 4 byte UID
+      // Until we support 7 byte PICCs
+      Serial.println(F("Scanned PICC's UID:"));
+      for ( uint8_t i = 0; i < 4; i++) {  //
+        readCard[i] = mfrc522.uid.uidByte[i];
+        Serial.print(readCard[i], HEX);
+      }
+      Serial.println("");
+      mfrc522.PICC_HaltA(); // Stop reading
+      return 1;
+}// end rfid read
+
+/**
+ * loop until there is a successful read
+ */
+void waitForRead(){
+    do {
+      successRead = readRFID();
     }
+    while (!successRead);   
+} // end wait for read
 
+//---------------------------------------------------------------------------------------------------------
+// SERVO
+//---------------------------------------------------------------------------------------------------------
+Servo myservo; // servo motor instance
+int servoPosition; // the position of the servo motor
+#define SERVO_LEFT 0
+#define SERVO_TOP 90
+#define SERVO_RIGHT 180
 
-};
+/**
+ * Creates the servo motor instance
+ */
+void attachServo(){
+  myservo.attach(SERVO_PIN); // attach the servo on this pin
+  servoPosition = 0;
+  // make the servo position default as close 180
+  myservo.write(SERVO_RIGHT);
+}
 
-RFID_Reader reader;
+//---------------------------------------------------------------------------------------------------------
+// SETUP
+//---------------------------------------------------------------------------------------------------------
+byte entranceCard[4];
+byte exitCard[4];
+/**
+ * Sets the entrance and exit card
+ */
+void setupEntranceExitCard(){
+  // get entrance
+  offVisuals(); // turn off visuals
+  digitalWrite(BLUE_LED, PIN_ON); // light up blue for programming
+  digitalWrite(GREEN_LED, PIN_ON); // green to ask for the entrance card
+  waitForRead(); // wait until there is a successfuly read
+  entranceCard[4] = readCard; // save the entrance card
+  buzz();
+  // get exit
+  offVisuals(); // turn off visuals
+  digitalWrite(BLUE_LED, PIN_ON); // light up blue for programming
+  digitalWrite(RED_LED, PIN_ON); // green to ask for the entrance card
+  waitForRead(); // wait until there is a successfuly read
+  exitCard[4] = readCard; // save the entrance card
+  buzz();
+  offVisuals(); // turn off visuals
+}
 
 void setup() {
-  // set pins as output mode
+  //--------------------------
+  /**
+   * Define the following pins as output mode
+   */
   pinMode(BLUE_LED, OUTPUT);
   pinMode(GREEN_LED, OUTPUT);
   pinMode(RED_LED, OUTPUT);
   pinMode(BUZZER, OUTPUT);
+  //--------------------------
+
+  /**
+   * Initializes the RFID reader and all components.
+   */
+  initializeRFID(); // initialize RFID
+  /**
+   * Displays the RFID reader information. if there was an error with the connction it will
+   * run the buzzer forever.
+   */
+  showReaderInfo(); // show reader information
+  /**
+   * Attaches the servo motor to the arduino board.
+   */
+  attachServo(); // initialize servo
+  /**
+   * Lights up the BLUE led for programming mode that inidicates the system needs the entrance
+   * and exit cards.
+   * 
+   * BLUE with GREEN scan the card for entrance
+   * BLUE with RED scan the card for exit
+   */
+  setupEntranceExitCard(); // save card values
   
-  reader.initialize();
-  reader.showReaderInfo();
+} // end setup
 
-  // read
-  reader.readRFID();
-  // store read data
-  byte readData = reader.getReadData();
-}
-
+//---------------------------------------------------------------------------------------------------------
+// LOOP
+//---------------------------------------------------------------------------------------------------------
 void loop() {
   // put your main code here, to run repeatedly:
 
-}
+} // end loop
