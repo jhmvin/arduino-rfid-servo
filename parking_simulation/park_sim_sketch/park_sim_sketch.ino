@@ -116,7 +116,11 @@ void waitForRead(){
     do {
       successRead = readRFID();
     }
-    while (!successRead);   
+    while (!successRead);
+    digitalWrite(LED_BLUE,PIN_ON);
+    delay(100);
+    digitalWrite(LED_BLUE,PIN_OFF);
+    delay(100);   
 } // end wait for read
 
 /**
@@ -187,13 +191,15 @@ void setup() {
   Serial.println(F("LED PINS are set to output mode . . ."));
   //------------------------------------------------------------------------------------------------------------------------------------
   // boot sequence light all LED
-  for(x = 0 ; x < 10; x++){
+  for(x = 0 ; x < 5; x++){
     turnOffAllLeds();
     delay(300);
     digitalWrite(LED_RED,PIN_ON);
+    delay(200);
     digitalWrite(LED_GREEN,PIN_ON);
+    delay(200);
     digitalWrite(LED_BLUE,PIN_ON);
-    delay(300);
+    delay(200);
   }
   x = 0;
   Serial.println(F("Starting Program all LED's should be on . . ."));
@@ -225,6 +231,7 @@ void setup() {
   waitForRead();
   cardCopy(entranceCard,readCard);
   turnOffAllLeds();
+  digitalWrite(LED_BLUE,PIN_ON);
   // success blink 3x green
   for(x = 0; x< 3 ; x++){
     digitalWrite(LED_GREEN,PIN_ON);
@@ -250,6 +257,7 @@ void setup() {
   do{
       waitForRead();
       cardCopy(exitCard,readCard);
+      digitalWrite(LED_BLUE,PIN_ON);
   }while(cardCompare(exitCard,entranceCard));
   // successfully saved exit card
   for(x = 0; x< 3 ; x++){
